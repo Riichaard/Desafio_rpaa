@@ -22,7 +22,7 @@ namespace SeleniumBot
                     cmd.Parameters.AddWithValue("Keystrokes", results.Keystrokes);
                     cmd.Parameters.AddWithValue("CorrectKeystrokes", results.CorrectKeystrokes);
                     cmd.Parameters.AddWithValue("WrongKeystrokes", results.WrongKeystrokes);
-                    cmd.Parameters.AddWithValue("Accuracy", results.Accuracy);
+                    cmd.Parameters.AddWithValue("Accuracy", (double)results.Accuracy / 100); // Convertendo para o intervalo de 0 a 1
                     cmd.Parameters.AddWithValue("CorrectWords", results.CorrectWords);
                     cmd.Parameters.AddWithValue("WrongWords", results.WrongWords);
                     cmd.Parameters.AddWithValue("Tempo_decorrido_em_segundo", results.ElapsedTimeInSeconds);
@@ -34,7 +34,7 @@ namespace SeleniumBot
             }
 
         }
-        public static List<TestResults> GetResultsFromDatabase()
+        public static List<TestResults> GetResultsFromDatabase(string tipoTeste)
         {
             List<TestResults> resultsList = new List<TestResults>();
 
@@ -44,10 +44,12 @@ namespace SeleniumBot
             {
                 connection.Open();
 
-                string sql = "SELECT * FROM resultados";
+                string sql = "SELECT * FROM resultados WHERE tipo = @Tipo";
 
                 using (var cmd = new NpgsqlCommand(sql, connection))
                 {
+                    cmd.Parameters.AddWithValue("Tipo", tipoTeste);
+
                     using (var reader = cmd.ExecuteReader())
                     {
                         while (reader.Read())
@@ -74,5 +76,6 @@ namespace SeleniumBot
 
             return resultsList;
         }
+
     }
 }

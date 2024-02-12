@@ -9,7 +9,7 @@ using System.IO;
 
 namespace SeleniumBot
 {
-    class AutomationWeb
+    class RoboTeste  
     {
         public TestResults TesteWeb()
         {
@@ -22,7 +22,7 @@ namespace SeleniumBot
                 // Abrindo a página do teste de digitação
                 driver.Navigate().GoToUrl("https://10fastfingers.com/typing-test/portuguese");
 
-                // Esperando até que o botão "Deny" esteja visível na tela
+                // Esperando até que o botão "Deny" do cookie esteja visível na tela
                 WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(5));
                 IWebElement denyCookiesButton = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementToBeClickable(By.Id("CybotCookiebotDialogBodyButtonDecline")));
 
@@ -32,10 +32,10 @@ namespace SeleniumBot
                 // Localizando o campo de entrada de texto
                 IWebElement inputField = wait.Until(ExpectedConditions.ElementExists(By.Id("inputfield")));
 
-                // Esperando até que o contêiner de palavras apareça na tela
+                // Esperando até que a lista de palavras apareça na tela
                 IWebElement wordsContainer = wait.Until(ExpectedConditions.ElementExists(By.Id("row1")));
 
-                // Coletando todas as palavras dentro do container
+                // Coletando todas as palavras dentro do campo
                 IList<IWebElement> words = wordsContainer.FindElements(By.TagName("span"));
 
                 // Registra o tempo inicial
@@ -68,14 +68,16 @@ namespace SeleniumBot
 
                 results.Tipo = "Robo";
 
+                driver.Quit();
+
                 // Retorna os resultados
                 return results;
 
             }
-            finally
+            catch (Exception ex)
             {
-                // Fechando o navegador após o teste
-                //driver.Quit();
+                Console.WriteLine("Ocorreu uma exceção: " + ex.Message);
+                return null; // Ou outra ação apropriada em caso de exceção
             }
         }
 
@@ -100,6 +102,16 @@ namespace SeleniumBot
             // Obter a precisão da palavra
             string accuracyText = accuracyElement.Text.Replace("%", "");
             double accuracy = double.Parse(accuracyText);
+
+            // Formatar a precisão da palavra com duas casas decimais e o símbolo de porcentagem
+            if (accuracy == 100.0)
+            {
+                accuracyText = "100.00%";
+            }
+            else
+            {
+                accuracyText = (accuracy / 100).ToString("P2");
+            }
 
             // Crie e retorne os resultados do teste
             return new TestResults

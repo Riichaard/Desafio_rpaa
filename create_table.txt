@@ -1,0 +1,14 @@
+CREATE TABLE resultados (
+    id SERIAL PRIMARY KEY,
+    tipo varchar(10),
+    palavrasporminuto VARCHAR(10),
+    keystrokes VARCHAR(20),
+    correct_keystrokes VARCHAR(10),
+    wrong_keystrokes VARCHAR(10),
+    accuracy VARCHAR(10),
+    correct_words VARCHAR(10),
+    wrong_words VARCHAR(10),
+    Tempo_decorrido_em_segundo VARCHAR(10),
+    velocidade_media double precision,
+    precisao_por_palavra double precision
+);

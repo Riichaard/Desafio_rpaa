@@ -28,10 +28,10 @@ namespace SeleniumBot
                 switch (opcao)
                 {
                     case "1":
-                        RealizarTesteManual("Humano");
+                        RealizarTesteManual();
                         break;
                     case "2":
-                        RealizarTesteAutomatizado("Robo");
+                        RealizarTesteAutomatizado();
                         break;
                     case "3":
                         ConsultarBancoDeDados();
@@ -48,48 +48,83 @@ namespace SeleniumBot
             }
         }
 
-        static void RealizarTesteManual(string tipoTeste)
+        static void RealizarTesteManual()
         {
             ManualTest automation = new ManualTest();
             var results = automation.RealizarTesteManual();
 
-            DatabaseManager.SaveResults(results, tipoTeste);
+            DatabaseManager.SaveResults(results, "Humano");
             Console.WriteLine("Teste manual concluído.");
-            Console.WriteLine(); // Adiciona uma linha em branco após a mensagem
         }
 
-        static void RealizarTesteAutomatizado(string tipoTeste)
+        static void RealizarTesteAutomatizado()
         {
-            AutomationWeb automation = new AutomationWeb();
+            RoboTeste automation = new RoboTeste();
             var results = automation.TesteWeb();
 
-            DatabaseManager.SaveResults(results, tipoTeste);
+            DatabaseManager.SaveResults(results, "Robô");
             Console.WriteLine("Teste automatizado concluído.");
-            Console.WriteLine(); // Adiciona uma linha em branco após a mensagem
         }
 
         static void ConsultarBancoDeDados()
         {
-            List<TestResults> resultsList = DatabaseManager.GetResultsFromDatabase();
+            List<TestResults> resultadosHumanos = DatabaseManager.GetResultsFromDatabase("Humano");
+            List<TestResults> resultadosRobos = DatabaseManager.GetResultsFromDatabase("Robô");
 
-            if (resultsList.Count > 0)
+            if (resultadosHumanos.Count > 0 && resultadosRobos.Count > 0)
             {
-                Console.WriteLine("Resultados encontrados no banco de dados:");
-
-                foreach (var results in resultsList)
-                {
-                    Console.WriteLine($"Palavras por minuto: {results.Palavrasporminuto}");
-                    Console.WriteLine($"Keystrokes: {results.Keystrokes}");
-                    Console.WriteLine($"Precisão da palavra: {results.WordAccuracy}%");
-                    Console.WriteLine("--------------------------------------");
-                }
+                CompararResultados(resultadosHumanos, resultadosRobos);
             }
             else
             {
-                Console.WriteLine("Nenhum resultado encontrado no banco de dados.");
+                Console.WriteLine("Não há resultados suficientes para comparar.");
             }
-
-            Console.WriteLine(); // Adiciona uma linha em branco após os resultados
         }
+
+        static void CompararResultados(List<TestResults> resultadosHumanos, List<TestResults> resultadosRobos)
+        {
+            if (resultadosHumanos.Count > 0 && resultadosRobos.Count > 0)
+            {
+                Console.WriteLine("--- Comparação entre Testes Manuais (Humano) e Testes Automatizados (Robô) ---");
+
+                // Calcular médias para cada métrica
+                
+
+                double mediaKeystrokesHumano = resultadosHumanos.Average(r => r.Keystrokes);
+                double mediaKeystrokesRobo = resultadosRobos.Average(r => r.Keystrokes);
+
+                double mediaCorrectKeystrokesHumano = resultadosHumanos.Average(r => r.CorrectKeystrokes);
+                double mediaCorrectKeystrokesRobo = resultadosRobos.Average(r => r.CorrectKeystrokes);
+
+                double mediaWrongKeystrokesHumano = resultadosHumanos.Average(r => r.WrongKeystrokes);
+                double mediaWrongKeystrokesRobo = resultadosRobos.Average(r => r.WrongKeystrokes);
+
+                double mediaAccuracyHumano = resultadosHumanos.Average(r => r.Accuracy);
+                double mediaAccuracyRobo = resultadosRobos.Average(r => r.Accuracy);
+
+                double mediaCorrectWordsHumano = resultadosHumanos.Average(r => r.CorrectWords);
+                double mediaCorrectWordsRobo = resultadosRobos.Average(r => r.CorrectWords);
+
+                double mediaWrongWordsHumano = resultadosHumanos.Average(r => r.WrongWords);
+                double mediaWrongWordsRobo = resultadosRobos.Average(r => r.WrongWords);
+
+                // Exibir diferenças percentuais
+                
+                ExibirDiferencaPercentual("Keystrokes", mediaKeystrokesHumano, mediaKeystrokesRobo);
+                ExibirDiferencaPercentual("Correct Keystrokes", mediaCorrectKeystrokesHumano, mediaCorrectKeystrokesRobo);
+                ExibirDiferencaPercentual("Wrong Keystrokes", mediaWrongKeystrokesHumano, mediaWrongKeystrokesRobo);
+                ExibirDiferencaPercentual("Accuracy", mediaAccuracyHumano, mediaAccuracyRobo);
+                ExibirDiferencaPercentual("Correct Words", mediaCorrectWordsHumano, mediaCorrectWordsRobo);
+                ExibirDiferencaPercentual("Wrong Words", mediaWrongWordsHumano, mediaWrongWordsRobo);
+            }
+        }
+
+        static void ExibirDiferencaPercentual(string metrica, double valorHumano, double valorRobo)
+        {
+            double diferencaPercentual = ((valorRobo - valorHumano) / valorHumano) * 100;
+
+            Console.WriteLine($"Diferença Percentual de {metrica}: {diferencaPercentual}%");
+        }
+
     }
 }

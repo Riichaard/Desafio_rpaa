@@ -23,23 +23,19 @@ namespace SeleniumBot
                 // Registra o tempo inicial
                 DateTime startTime = DateTime.Now;
 
+                // Obtém os resultados do website
+                var results = GetResultsFromWebsite(driver);
+
                 // Registra o tempo final
                 DateTime endTime = DateTime.Now;
 
                 // Calcula o tempo decorrido em segundos
                 double elapsedTimeInSeconds = (endTime - startTime).TotalSeconds;
 
-                // Obtém os resultados do website
-                var results = GetResultsFromWebsite(driver, elapsedTimeInSeconds);
-
                 // Calcula a velocidade média
                 results.CalculateAverageSpeed(elapsedTimeInSeconds);
-
                 results.CalculateWordAccuracy();
-
                 results.Tipo = "Humano";
-
-                return results;
 
                 // Exibe os resultados
                 Console.WriteLine("Resultados do teste manual:");
@@ -47,21 +43,25 @@ namespace SeleniumBot
                 Console.WriteLine($"Keystrokes: {results.Keystrokes}");
                 Console.WriteLine($"Precisão da palavra: {results.WordAccuracy}%");
 
-                // Retorna os resultados
                 return results;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Ocorreu uma exceção: " + ex.Message);
+                return null; // Ou outra ação apropriada em caso de exceção
             }
             finally
             {
                 // Fechando o navegador após o teste
-                //driver.Quit();
+                driver.Quit();
             }
         }
 
-        private TestResults GetResultsFromWebsite(IWebDriver driver, double elapsedTimeInSeconds)
+        private TestResults GetResultsFromWebsite(IWebDriver driver)
         {
             // Localize os elementos na página usando XPath
             Thread.Sleep(65000); // Espera de 65 segundos
-            IWebElement palavrasporminutoElement = driver.FindElement(By.XPath("//*[@id=\'wpm\']/strong"));
+            IWebElement palavrasporminutoElement = driver.FindElement(By.XPath("//*[@id='wpm']/strong"));
             IWebElement correctKeystrokesElement = driver.FindElement(By.XPath("//*[@id=\'keystrokes\']/td[2]/small/span[1]"));
             IWebElement wrongKeystrokesElement = driver.FindElement(By.XPath("//*[@id=\'keystrokes\']/td[2]/small/span[2]"));
             IWebElement accuracyElement = driver.FindElement(By.XPath("//*[@id=\'accuracy\']/td[2]/strong"));
@@ -79,6 +79,15 @@ namespace SeleniumBot
             string accuracyText = accuracyElement.Text.Replace("%", "");
             double accuracy = double.Parse(accuracyText);
 
+            if (accuracy == 100.0)
+            {
+                accuracyText = "100.00%";
+            }
+            else
+            {
+                accuracyText = (accuracy / 100).ToString("P2");
+            }
+
             // Crie e retorne os resultados do teste
             return new TestResults
             {
@@ -88,8 +97,7 @@ namespace SeleniumBot
                 WrongKeystrokes = wrongKeystrokes,
                 Accuracy = accuracy,
                 CorrectWords = correctWords,
-                WrongWords = wrongWords,
-                ElapsedTimeInSeconds = elapsedTimeInSeconds
+                WrongWords = wrongWords
             };
         }
     }
